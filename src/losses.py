@@ -1,40 +1,34 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 class PINNLoss(nn.Module):
-    def __init__(self, lambda_mono=0.1, lambda_exp=0.05):
+    def __init__(self, lambda_mono=0.1, lambda_exp=0.05, penalty_ratio=3.0):
         super(PINNLoss, self).__init__()
-        self.mse = nn.MSELoss()
-        self.lambda_mono = lambda_mono  # 单调性约束权重
-        self.lambda_exp = lambda_exp    # 指数退化约束权重
+        self.lambda_mono = lambda_mono
+        self.lambda_exp = lambda_exp
+        # 高估寿命(危险)的惩罚是低估的 3 倍
+        self.penalty_ratio = penalty_ratio 
 
-    def forward(self, pred, target):
-        """
-        pred: 模型预测值 (Batch,)
-        target: 真实 RUL 标签 (Batch,)
-        """
-        # 1. 基础任务损失 (MSE)
-        loss_mse = self.mse(pred, target)
+    def forward(self, y_pred, y_true):
+        # 1. 非对称均方误差 (Asymmetric MSE)
+        diff = y_pred - y_true
+        weight_matrix = torch.where(diff > 0, 
+                                    torch.tensor(self.penalty_ratio, device=diff.device), 
+                                    torch.tensor(1.0, device=diff.device))
+        mse_loss = torch.mean(weight_matrix * (diff ** 2))
 
-        # 2. 物理约束一：单调性损失 (Monotonicity Loss)
-        # 轴承寿命在物理上不可逆，预测值 y_t 应该小于 y_{t-1}
-        # 我们计算 Batch 内相邻样本的差值（假设 Batch 内是按时间排序的切片）
-        # 如果 y_t - y_{t-1} > 0，说明寿命增加了，产生惩罚
-        diff = pred[1:] - pred[:-1]
-        loss_mono = torch.mean(F.relu(diff)) # 只惩罚大于 0 的部分
+        # 2. 单调性物理约束
+        diff_pred = y_pred[1:] - y_pred[:-1]
+        mono_loss = torch.mean(torch.relu(diff_pred))
 
-        # 3. 物理约束二：指数退化一致性 (Exponential Trend Loss)
-        # 轴承后期退化通常符合指数规律：y = a * exp(-bt)
-        # 我们通过惩罚预测值与对数线性趋势的偏差来逼近它
-        # 这里简化处理：要求预测值的二阶导数（加速度）大于0，即曲线是下凸的
-        if len(pred) > 2:
-            second_diff = pred[2:] - 2*pred[1:-1] + pred[:-2]
-            loss_exp = torch.mean(F.relu(-second_diff)) # 惩罚上凸（减速退化）的情况
-        else:
-            loss_exp = 0.0
+        # 3. 指数加速退化约束
+        time_steps = torch.arange(y_pred.size(0), dtype=torch.float32, device=y_pred.device)
+        normalized_time = time_steps / time_steps.max()
+        target_curve = torch.exp(-3.0 * normalized_time)
+        exp_loss = torch.mean((y_pred.squeeze() - target_curve)**2)
 
-        # 总损失函数
-        total_loss = loss_mse + self.lambda_mono * loss_mono + self.lambda_exp * loss_exp
+        # 组合总损失
+        total_loss = mse_loss + self.lambda_mono * mono_loss + self.lambda_exp * exp_loss
         
-        return total_loss, loss_mse, loss_mono, loss_exp
+        # 【修复点】：返回 4 个值，满足 trainer.py 的解包和日志打印需求
+        return total_loss, mse_loss, mono_loss, exp_loss
