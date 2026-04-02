@@ -81,6 +81,49 @@ class PHM2012DataBuilder:
                 rms_array[i+2] > threshold):
                 return i
         return int(len(rms_array) * 0.7)
+    
+    def find_fpt_macro_amplitude(self, rms_array):
+        """
+        基于宏观退化幅值的 FPT 检测 (工业界实战/顶刊常用方法)
+        解决早期微小波动导致的标签误判问题。
+        """
+        import numpy as np
+        
+        # 1. 确定健康期基准
+        healthy_mean = np.mean(rms_array[:self.healthy_samples])
+        
+        # 2. 提取寿命末期的最大故障幅值 (取最后 50 个点的均值，防止单一离群点干扰)
+        failure_amplitude = np.mean(rms_array[-50:])
+        
+        # 3. 设定宏观退化阈值：比如，当信号增长达到最大故障跨度的 5% 时
+        # 这个 0.05 (5%) 就是过滤早期潜伏期噪声的黄金参数
+        threshold = healthy_mean + 0.05 * (failure_amplitude - healthy_mean)
+        
+        # 4. 从后向前找，或者加入持续性判断，找到真实物理拐点
+        sustain_steps = 15 # 必须连续 15 步超过宏观阈值
+        consecutive_count = 0
+        
+        for i in range(self.healthy_samples, len(rms_array)):
+            if rms_array[i] > threshold:
+                consecutive_count += 1
+                if consecutive_count >= sustain_steps:
+                    return i - sustain_steps + 1
+            else:
+                consecutive_count = 0
+                
+        return int(len(rms_array) * 0.7)
+        
+        for i in range(self.healthy_samples, len(smoothed_rms)):
+            if smoothed_rms[i] > threshold:
+                consecutive_count += 1
+                if consecutive_count >= sustain_steps:
+                    # 确认为真实退化，返回最初越界的那个时间点
+                    return i - sustain_steps + 1 
+            else:
+                consecutive_count = 0 # 若信号回落到健康区间，则重新计数
+                
+        # 兜底返回值
+        return int(len(rms_array) * 0.7)
 
     def generate_labels(self, total_length, fpt_idx):
         """生成分段线性 RUL 标签 (归一化到 [0, 1])"""
@@ -125,7 +168,7 @@ class PHM2012DataBuilder:
             norm_features = df_norm.ewm(span=10, adjust=False).mean().values
             
             # 使用第一列 (RMS) 寻找 FPT
-            fpt_idx = self.find_fpt_3sigma(norm_features[:, 0])
+            fpt_idx = self.find_fpt_macro_amplitude(norm_features[:, 0])
             print(f"[{os.path.basename(d)}] FPT 检测于时间步: {fpt_idx}")
             
             labels = self.generate_labels(len(norm_features), fpt_idx)
