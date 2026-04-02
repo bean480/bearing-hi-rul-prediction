@@ -19,24 +19,34 @@ class RULEvaluator:
         print(f"✅ Loaded weights: {model_path}")
 
     def predict_with_uncertainty(self, x_test, n_iter=50):
+        """
+        使用 Monte Carlo Dropout 进行不确定性量化 (UQ) 预测
+        """
+        # 【核心操作】：强制开启模型的训练模式，激活 Dropout 层，产生随机性
         self.model.train() 
+        
         x_tensor = torch.FloatTensor(x_test).to(self.device)
-        
         predictions = []
-        print(f"Running {n_iter} MC-Dropout iterations...")
         
-        with torch.no_grad():
-            for _ in range(n_iter):
-                output = self.model(x_tensor)
-                predictions.append(output.cpu().numpy())
-        
+        print(f"🔄 正在进行 {n_iter} 次 MC Dropout 采样计算...")
+        with torch.no_grad(): # 推理时不计算梯度，省显存
+            for i in range(n_iter):
+                # 每次前向传播，Dropout 都会随机“丢弃”不同的神经元
+                pred = self.model(x_tensor).cpu().numpy()
+                predictions.append(pred)
+                
+        # 将结果堆叠为一个矩阵: Shape (n_iter, sequence_length)
         predictions = np.array(predictions)
+        
+        # 沿 0 轴（采样次数）求均值，得到最终的点预测
         mean_pred = np.mean(predictions, axis=0)
+        # 沿 0 轴求标准差，这就代表了模型的不确定性（画阴影用）
         std_pred = np.std(predictions, axis=0)
         
         return mean_pred, std_pred
 
     def visualize_result(self, true_rul, mean_pred, std_pred, save_name="prediction_result.png"):
+        
         save_dir = "./results/figures"
         os.makedirs(save_dir, exist_ok=True)
 

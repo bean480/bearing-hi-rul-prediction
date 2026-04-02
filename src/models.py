@@ -57,7 +57,7 @@ class CBAM1D(nn.Module):
 # 2. 完整 RUL 预测模型
 # ==========================================
 class BearingRULModel(nn.Module):
-    def __init__(self, input_features=7, seq_len=30, hidden_dim=64, dropout_rate=0.3):
+    def __init__(self, input_features=7, seq_len=30, hidden_dim=64, dropout_rate=0.1):
         super(BearingRULModel, self).__init__()
         
         # A. 多尺度 1D-CNN (捕捉不同频段的局部冲击特征)
@@ -122,8 +122,6 @@ class BearingRULModel(nn.Module):
         feat = self.dropout(feat) # MC Dropout 层
         
         rul_pred = self.fc2(feat)
-        # 强制输出非负数 (物理约束的第一层)
-        rul_pred = self.softplus(rul_pred) 
         
-        # 降维 (Batch, 1) -> (Batch,)
-        return rul_pred.squeeze()
+        rul_pred = torch.sigmoid(rul_pred.squeeze()) * 1.2
+        return rul_pred

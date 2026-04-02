@@ -62,6 +62,7 @@ def main():
         evaluator = RULEvaluator(model, config)
         
         # 执行带有 MC Dropout 的预测
+        # mean_pred, std_pred = evaluator.predict_with_uncertainty(X_test, n_iter=50)
         mean_pred, std_pred = evaluator.predict_with_uncertainty(X_test, n_iter=50)
         evaluator.visualize_result(Y_test, mean_pred, std_pred)
         # === 【新增：注意力热力图可视化】 ===
