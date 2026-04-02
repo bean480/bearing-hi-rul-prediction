@@ -64,6 +64,15 @@ def main():
         # 执行带有 MC Dropout 的预测
         mean_pred, std_pred = evaluator.predict_with_uncertainty(X_test, n_iter=50)
         evaluator.visualize_result(Y_test, mean_pred, std_pred)
+        # === 【新增：注意力热力图可视化】 ===
+        print("\n" + "="*40)
+        print("🧠 启动可解释性分析 (Explainability Analysis)...")
+        from src.attention_visualizer import AttentionVisualizer
+        
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        visualizer = AttentionVisualizer(model, device)
+        # 传入测试集数据绘制热力图
+        visualizer.visualize_lifespan_attention(X_test)
 
 if __name__ == "__main__":
     main()
