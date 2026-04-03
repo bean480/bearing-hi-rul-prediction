@@ -168,8 +168,9 @@ class PHM2012DataBuilder:
             norm_features = df_norm.ewm(span=10, adjust=False).mean().values
             
             # 使用第一列 (RMS) 寻找 FPT
+            # 更换为宏观退化幅值方法，避免早期噪声导致提前判定
             fpt_idx = self.find_fpt_macro_amplitude(norm_features[:, 0])
-            print(f"[{os.path.basename(d)}] FPT 检测于时间步: {fpt_idx}")
+            print(f"[{os.path.basename(d)}] FPT 宏观幅值检测于时间步: {fpt_idx}")
             
             labels = self.generate_labels(len(norm_features), fpt_idx)
             X, Y = self.create_sliding_window(norm_features, labels)
