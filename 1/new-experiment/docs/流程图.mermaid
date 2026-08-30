@@ -1,0 +1,49 @@
+flowchart LR
+    subgraph s1["步骤一：VMD 故障频带重构"]
+        A[原始振动信号] --> B[VMD 自适应分解]
+        B --> C[IMF 筛选]
+        C --> D[故障频带重构信号]
+    end
+
+    subgraph s2["步骤二：多域特征提取"]
+        D --> E[特征池 A]
+        A --> F[特征池 B]
+        E --> G[合并特征池]
+        F --> G
+    end
+
+    subgraph s3["步骤三：三维特征筛选"]
+        G --> H[单调性评分]
+        G --> I[趋势性评分]
+        G --> J[物理忠实度评分]
+        H --> K[交集初选]
+        I --> K
+        J --> K
+        K --> L[层次聚类复选]
+        L --> M[敏感特征子集]
+    end
+
+    subgraph s4["步骤四：HI 构建"]
+        M --> N[PCA 特征融合]
+        N --> O[健康指标 HI]
+    end
+
+    style A fill:none,stroke:#333
+    style B fill:none,stroke:#333
+    style C fill:none,stroke:#333
+    style D fill:none,stroke:#333
+    style E fill:none,stroke:#333
+    style F fill:none,stroke:#333
+    style G fill:none,stroke:#333
+    style H fill:none,stroke:#333
+    style I fill:none,stroke:#333
+    style J fill:none,stroke:#333
+    style K fill:none,stroke:#333
+    style L fill:none,stroke:#333
+    style M fill:none,stroke:#333
+    style N fill:none,stroke:#333
+    style O fill:none,stroke:#333
+    style s1 fill:none,stroke:#333,color:#333
+    style s2 fill:none,stroke:#333,color:#333
+    style s3 fill:none,stroke:#333,color:#333
+    style s4 fill:none,stroke:#333,color:#333

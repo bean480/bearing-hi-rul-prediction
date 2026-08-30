@@ -1,0 +1,55 @@
+Bearing1_1 (123 CSVs)
+Pool A: VMD重构信号, 25 features
+Pool B: 原始振动信号, 20 features
+
+==================================================
+Pool A:
+  A01: BPFI_Energy
+  A02: BPFO_Energy
+  A03: BandEnergy_0_1kHz  [共有]
+  A04: BandEnergy_1_3kHz  [共有]
+  A05: BandEnergy_3_6kHz  [共有]
+  A06: BandEnergy_6_12_8kHz  [共有]
+  A07: CrestFactor  [共有]
+  A08: Energy  [共有]
+  A09: EnvKurtosis
+  A10: EnvPeakFactor
+  A11: EnvRMS
+  A12: FreqCentroid  [共有]
+  A13: FreqSpread  [共有]
+  A14: FreqVariance  [共有]
+  A15: ImpulseFactor  [共有]
+  A16: Kurtosis  [共有]
+  A17: MeanAbs  [共有]
+  A18: Peak  [共有]
+  A19: PeakToPeak  [共有]
+  A20: RMS  [共有]
+  A21: RMSFreq  [共有]
+  A22: ShapeFactor  [共有]
+  A23: Skewness  [共有]
+  A24: Std  [共有]
+  A25: Variance  [共有]
+
+==================================================
+Pool B:
+  B01: BandEnergy_0_1kHz  [共有]
+  B02: BandEnergy_1_3kHz  [共有]
+  B03: BandEnergy_3_6kHz  [共有]
+  B04: BandEnergy_6_12_8kHz  [共有]
+  B05: CrestFactor  [共有]
+  B06: Energy  [共有]
+  B07: FreqCentroid  [共有]
+  B08: FreqSpread  [共有]
+  B09: FreqVariance  [共有]
+  B10: ImpulseFactor  [共有]
+  B11: Kurtosis  [共有]
+  B12: MeanAbs  [共有]
+  B13: Peak  [共有]
+  B14: PeakToPeak  [共有]
+  B15: RMS  [共有]
+  B16: RMSFreq  [共有]
+  B17: ShapeFactor  [共有]
+  B18: Skewness  [共有]
+  B19: Std  [共有]
+  B20: Variance  [共有]
+

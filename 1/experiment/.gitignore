@@ -1,0 +1,15 @@
+# 数据集和预处理文件 (绝对不能提交)
+data/raw/
+data/processed/
+*.npy
+*.csv
+
+# 模型权重和输出结果 (不需要提交)
+results/checkpoints/
+results/figures/
+*.pth
+*.png
+
+# Python 缓存文件
+src/__pycache__/
+*.pyc

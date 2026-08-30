@@ -1,0 +1,33 @@
+# ==========================
+# Phase 1: Data Configuration (Multi-Bearing)
+# ==========================
+data:
+  # 训练集路径列表
+  train_dirs: 
+    - "./data/raw/Bearing1_1"
+    - "./data/raw/Bearing1_2"
+  
+  # 测试集路径列表 (可以先放一个测试)
+  test_dirs:
+    - "./data/raw/Bearing3_3"
+    
+  processed_dir: "./data/processed"
+  
+  # 特征工程参数
+  sampling_rate: 25600                   
+  window_size: 30                        
+  
+  # FPT 检测参数
+  fpt_method: "3sigma"                   
+  healthy_samples: 200
+# ==========================
+# Phase 4: Training Params
+# ==========================
+train:
+  seed: 42               # 随机种子（确保可复现性）
+  epochs: 50             # 迭代轮数，可以根据收敛情况调整
+  batch_size: 256         # 批次大小（增大以提高GPU利用率）
+  lr: 0.0001             # 学习率（从0.001降到0.0001，防止梯度爆炸）
+  weight_decay: 0.0001   # 权重衰减，防止过拟合
+  patience: 10           # 早停耐心值：验证损失连续N轮不降则停止
+  save_dir: "./results/checkpoints" # 模型保存路径
